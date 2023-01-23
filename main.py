@@ -47,7 +47,6 @@ class Ball:
     def moveBall(self):
         global flag
        
-
         self.posx=self.dirx*self.magnitude
         self.posy=self.diry*self.magnitude
         if self.posx<0 or self.posx>500:
