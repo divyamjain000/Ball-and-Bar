@@ -11,15 +11,30 @@ flag=False
 
 class Ball:
     def __init__(self,root,x,y,r):
-        self.dirx=0
+        self.dirx=-1
         self.diry=-1
+        self.barLength=100
         self.magnitude=5
         self.x=x
         self.y=y
         self.r=r
+
+        self.ballposx=0
+        self.speed=20
+        
+        self.x1=self.x
+        self.y1=self.y
         self.root=root
         self.ball=canvas.create_oval(self.x-self.r,self.y-self.r,self.x+self.r,self.y+self.r,fill="white")      
         self.bar=canvas.create_line(self.x,self.y,self.x+50,self.y,fill="white",width=5)
+        while flag==False:
+            self.root.update()
+            self.isReady()
+
+
+    def isReady(self):
+        self.root.bind("<Motion>",self.getCoords)
+        canvas.coords(self.ball,self.x-self.r+self.barLength/2,self.y-2*self.r,self.x+self.r+self.barLength/2,self.y)
         self.root.bind("<Button-1>",self.start)
         while True:
             self.root.update()
@@ -28,9 +43,8 @@ class Ball:
                 break
 
 
-
     def Bar(self,x,y):
-        canvas.coords(self.bar,self.x,self.y,self.x+50,self.y)
+        canvas.coords(self.bar,self.x,self.y,self.x+self.barLength,self.y)
 
     def getCoords(self,e):
         global flag
@@ -38,31 +52,59 @@ class Ball:
         if(self.x<0):
             self.x=0
 
-        if(self.x>450):
-            self.x=450
+        if(self.x>500-self.barLength):
+            self.x=500-self.barLength
         self.y=450
         self.Bar(self.x,self.y)
-        print(self.x,self.y,flag)
+        if flag==False:
+            canvas.coords(self.ball,self.x-self.r+self.barLength/2,self.y-2*self.r,self.x+self.r+self.barLength/2,self.y)
+            self.ballposx=self.x-225
     
     def moveBall(self):
         global flag
-       
-        self.posx=self.dirx*self.magnitude
-        self.posy=self.diry*self.magnitude
-        if self.posx<0 or self.posx>500:
-            self.dirx=-self.dirx
-        if self.posy<0 or self.posy>500:
-            self.diry=-self.diry
+        print("moving ball")
+        self.posx=self.dirx*self.magnitude+self.posx
+        self.posy=self.diry*self.magnitude+self.posy
+        if(self.posx<-225+2*self.r):
+            self.dirx=1
+            print("a")
+        
+        if(self.posy>50-2*self.r):
+            self.diry=-1
+            print("b")
+            self.ballposx=self.posx-225
+            flag=False
+            self.isReady()
+            return
 
+        if(self.posx>250+2*self.r):
+
+            self.dirx=-1   
+            print("c")
+
+        if(self.posy<-450+2*self.r):
+            self.diry=1
+            print("d")
+        if (self.posx+225)> self.x  and  (self.posx+225)<self.x+self.barLength and  self.posy+self.r==0:
+            self.diry=-1
+            print("e")
+
+        print(self.posx+275+2*self.r,self.x,self.x+50,self.posy)
         if flag==True:
-            canvas.move(self.ball,self.posx,self.posy)
-            self.root.after(25,self.moveBall)
+            canvas.coords(self.ball,self.x1-self.r+self.posx,self.y1-self.r+self.posy,self.x1+self.r+self.posx,self.y1+self.r+self.posy)
+            self.root.after(self.speed,self.moveBall)
         else:
-            canvas.coords(self.ball,self.x-self.r,self.y-self.r,self.x+self.r,self.y+self.r)
+            canvas.coords(self.ball,self.x-self.r+self.barLength/2,self.y-2*self.r,self.x+self.r+self.barLength/2,self.y)
     
     def startgame(self):
-        self.root.bind("<Motion>",self.getCoords)
+        global flag
+        flag=True
+        self.posx=self.ballposx
+        self.posy=0
+        self.dirx=-1
+        self.diry=-1
         self.moveBall()
+
     
     def start(self,e):
         global flag
