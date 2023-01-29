@@ -11,8 +11,10 @@ flag=False
 
 class Ball:
     def __init__(self,root,x,y,r):
-        self.dirx=-1
-        self.diry=-1
+        self.tempx=-1
+        self.tempy=-1
+        self.dirx=-1/(self.tempx**2+self.tempy**2)
+        self.diry=-1/(self.tempx**2+self.tempy**2)
         self.barLength=100
         self.magnitude=5
         self.x=x
@@ -26,7 +28,7 @@ class Ball:
         self.y1=self.y
         self.root=root
         self.ball=canvas.create_oval(self.x-self.r,self.y-self.r,self.x+self.r,self.y+self.r,fill="white")      
-        self.bar=canvas.create_line(self.x,self.y,self.x+50,self.y,fill="white",width=5)
+        self.bar=canvas.create_line(self.x,self.y,self.x+self.barLength/2,self.y,fill="white",width=5)
         while flag==False:
             self.root.update()
             self.isReady()
@@ -60,7 +62,7 @@ class Ball:
             canvas.coords(self.ball,self.x-self.r+self.barLength/2,self.y-2*self.r,self.x+self.r+self.barLength/2,self.y)
             self.ballposx=self.x-225
     
-    def moveBall(self):
+    def ballMovement(self):
         global flag
         print("moving ball")
         self.posx=self.dirx*self.magnitude+self.posx
@@ -86,13 +88,16 @@ class Ball:
             self.diry=1
             print("d")
         if (self.posx+225)> self.x  and  (self.posx+225)<self.x+self.barLength and  self.posy+self.r==0:
+            self.tempx=self.dirx
+            self.tempy=self.diry
+            self.dirx=-1
             self.diry=-1
             print("e")
 
         print(self.posx+275+2*self.r,self.x,self.x+50,self.posy)
         if flag==True:
             canvas.coords(self.ball,self.x1-self.r+self.posx,self.y1-self.r+self.posy,self.x1+self.r+self.posx,self.y1+self.r+self.posy)
-            self.root.after(self.speed,self.moveBall)
+            self.root.after(self.speed,self.ballMovement)
         else:
             canvas.coords(self.ball,self.x-self.r+self.barLength/2,self.y-2*self.r,self.x+self.r+self.barLength/2,self.y)
     
@@ -103,7 +108,7 @@ class Ball:
         self.posy=0
         self.dirx=-1
         self.diry=-1
-        self.moveBall()
+        self.ballMovement()
 
     
     def start(self,e):
