@@ -1,4 +1,5 @@
 from tkinter import *
+from public.fileReading import *
 
 
 root=Tk()
@@ -29,6 +30,8 @@ class Ball:
         self.root=root
         self.ball=canvas.create_oval(self.x-self.r,self.y-self.r,self.x+self.r,self.y+self.r,fill="white")      
         self.bar=canvas.create_line(self.x,self.y,self.x+self.barLength/2,self.y,fill="white",width=5)
+        self.lines=returnList()
+        self.createBlocks()
         while flag==False:
             self.root.update()
             self.isReady()
@@ -64,37 +67,30 @@ class Ball:
     
     def ballMovement(self):
         global flag
-        print("moving ball")
         self.posx=self.dirx*self.magnitude+self.posx
         self.posy=self.diry*self.magnitude+self.posy
         if(self.posx<-225+2*self.r):
             self.dirx=1
-            print("a")
         
         if(self.posy>50-2*self.r):
             self.diry=-1
-            print("b")
             self.ballposx=self.posx-225
             flag=False
             self.isReady()
             return
 
         if(self.posx>250+2*self.r):
-
             self.dirx=-1   
-            print("c")
 
         if(self.posy<-450+2*self.r):
             self.diry=1
-            print("d")
+
         if (self.posx+225)> self.x  and  (self.posx+225)<self.x+self.barLength and  self.posy+self.r==0:
             self.tempx=self.dirx
             self.tempy=self.diry
             self.dirx=-1
             self.diry=-1
-            print("e")
 
-        print(self.posx+275+2*self.r,self.x,self.x+50,self.posy)
         if flag==True:
             canvas.coords(self.ball,self.x1-self.r+self.posx,self.y1-self.r+self.posy,self.x1+self.r+self.posx,self.y1+self.r+self.posy)
             self.root.after(self.speed,self.ballMovement)
@@ -115,6 +111,13 @@ class Ball:
         global flag
         if flag==False:
             flag=True
+    def createBlocks(self):
+        print(len(self.lines[0]))
+        for j in range (len(self.lines)):
+            for i in range(len(self.lines[j])):
+                canvas.create_rectangle(20*i+10,20*j+10,20*i+27,20*j+27,fill="green")
+                
+
 
 
 
