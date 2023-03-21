@@ -18,7 +18,7 @@ class Ball:
         self.tempx=-1
         self.tempy=-1
         self.dirx=1
-        self.diry=1
+        self.diry=-1
         self.barLength=100
         self.magnitude=1
         self.x=x
@@ -30,16 +30,21 @@ class Ball:
         self.ballposx=0
         self.speed=4
         self.x1=self.x
+        self.posx=self.x+self.barLength/2
+        self.posy=self.y
+ 
         self.y1=self.y
         self.root=root
         self.quitButton()
         self.ball=canvas.create_oval(self.x-self.r,self.y-self.r,self.x+self.r,self.y+self.r,fill="white")      
         self.bar=canvas.create_line(self.x,self.y,self.x+self.barLength/2,self.y,fill="white",width=5)
         self.lines=returnList()
+        self.blocks=[[]for i in range(len(self.lines))]
         self.createBlocks()
         while flag==False:
             self.root.update()
             self.isReady()
+
 
     def isReady(self):
         self.root.bind("<Motion>",self.getCoords)
@@ -48,11 +53,11 @@ class Ball:
         while True:
             self.root.update()
             if flag==True:
-                self.startGame()
+                self.startgame()
                 break
 
 
-    def bar(self,x,y):
+    def Bar(self,x,y):
         canvas.coords(self.bar,self.x,self.y,self.x+self.barLength,self.y)
 
     def getCoords(self,e):
@@ -64,7 +69,7 @@ class Ball:
         if(self.x>500-self.barLength):
             self.x=500-self.barLength
         self.y=450
-        self.bar(self.x,self.y)
+        self.Bar(self.x,self.y)
         if flag==False:
             canvas.coords(self.ball,self.x-self.r+self.barLength/2,self.y-2*self.r,self.x+self.r+self.barLength/2,self.y)
             self.ballposx=self.x-225
@@ -73,27 +78,32 @@ class Ball:
         global flag
         self.posx=self.dirx*self.magnitude+self.posx
         self.posy=self.diry*self.magnitude+self.posy
+        self.collision(self.posx,self.posy)
         if(self.posx<-225+2*self.r):
             self.dirx=1
         
-        if(self.posy>50-2*self.r):
+        if(self.posy>50+2*self.r):
             self.diry=-1
             self.ballposx=self.posx-225
             flag=False
-            self.pausetimer=True
             self.isReady()
             return
 
-        if(self.posx>250+2*self.r):
+        if(self.posx>225+2*self.r):
             self.dirx=-1   
-
         if(self.posy<-450+2*self.r):
             self.diry=1
 
-        if (self.posx+225)> self.x  and  (self.posx+225)<self.x+self.barLength and  self.posy+self.r==0:
+        if (self.posx+225)> self.x  and  (self.posx+225)<self.x+self.barLength/2 and  self.posy+self.r==0:
             self.tempx=self.dirx
             self.tempy=self.diry
             self.diry=-1
+            self.dirx=-1
+        if (self.posx+225)>self.x+self.barLength/2  and  (self.posx+225)<self.x+self.barLength and  self.posy+self.r==0:
+            self.tempx=self.dirx
+            self.tempy=self.diry
+            self.diry=-1
+            self.dirx=1
 
         if flag==True:
             canvas.coords(self.ball,self.x1-self.r+self.posx,self.y1-self.r+self.posy,self.x1+self.r+self.posx,self.y1+self.r+self.posy)
@@ -101,7 +111,7 @@ class Ball:
         else:
             canvas.coords(self.ball,self.x-self.r+self.barLength/2,self.y-2*self.r,self.x+self.r+self.barLength/2,self.y)
     
-    def startGame(self):
+    def startgame(self):
         global flag
         flag=True
         self.posx=self.ballposx
@@ -117,15 +127,18 @@ class Ball:
         if flag==False:
             flag=True
             self.pausetimer=False
-
+        
     def createBlocks(self):
         print(len(self.lines[0]))
         for j in range (len(self.lines)):
             for i in range(len(self.lines[j])):
-                if self.lines[j][i]=="1":
-                    canvas.create_rectangle(20*i+10,20*j+10,20*i+27,20*j+27,fill="green")
+                if(self.lines[j][i]=="0"):
+                    self.blocks[j].append(canvas.create_rectangle(20*i+10,20*j+10,20*i+29,20*j+29,fill="black",outline="black"))
+                elif(self.lines[j][i]=="1"):
+                    self.blocks[j].append(canvas.create_rectangle(20*i+10,20*j+10,20*i+29,20*j+29,fill="green"))
                 elif self.lines[j][i]=="2":
-                    canvas.create_rectangle(20*i+10,20*j+10,20*i+27,20*j+27,fill="grey")
+                    self.blocks[j].append(canvas.create_rectangle(20*i+10,20*j+10,20*i+29,20*j+29,fill="grey"))
+        
     def quitButton(self):
         self.button=Button(root,height=1,width=3,text="Quit",command=quit)
         self.button.place(x=550,y=50)
@@ -138,10 +151,58 @@ class Ball:
             s="Time: "+str(a)
             self.label.config(text=s)
             canvas.after(1000,self.timer)
+    def collision(self,px,py):
+        for j in range (len(self.lines)):
+            for i in range(len(self.lines[j])):
+                if( self.lines[j][i]=="0"):
+                    if px+225>20*i+10 and px+225<20*i+27 and py+450>20*j+10 and py+450<20*j+27:
+                        canvas.delete(self.blocks[j][i])
 
+                if(self.lines[j][i]=="1"  ):
+                    if  px+225-2*self.r==20*i+29 and py+450>20*j+10 and py+450<20*j+29:
+                        self.dirx=self.dirx*-1
+                        canvas.delete(self.blocks[j][i])
+                        self.lines[j]=self.lines[j][:i]+"0"+self.lines[j][i+1:]
+                        print(len(self.blocks[j]))
+                        return
+                    if px+225+2*self.r==20*i+10 and py+450>20*j+10 and py+450<20*j+29:
+                        self.dirx=self.dirx*-1
+                        canvas.delete(self.blocks[j][i])
+                        self.lines[j]=self.lines[j][:i]+"0"+self.lines[j][i+1:]
+
+                        print(len(self.blocks[j]))
+                        return
+                    if px+225>20*i+10 and px+225<20*i+29  and py+450-2*self.r==20*j+29:
+                        self.diry=self.diry*-1
+                        canvas.delete(self.blocks[j][i])
+                        self.lines[j]=self.lines[j][:i]+"0"+self.lines[j][i+1:]
+
+                        print(len(self.blocks[j]))
+                        return
+                    if px+225>20*i+10 and px+225<20*i+29 and py+450+2*self.r==20*j+10  :
+                        self.diry=self.diry*-1
+                        canvas.delete(self.blocks[j][i])
+                        self.lines[j]=self.lines[j][:i]+"0"+self.lines[j][i+1:]
+
+                        print(len(self.blocks[j]))
+                        
+                        return
+                    
+                elif self.lines[j][i]=="2":
+                    if  px+225==20*i+27 and py+450>20*j+10 and py+450<20*j+27:
+                        self.dirx=self.dirx*-1
+                        return
+                    if px+225==20*i+10 and py+450>20*j+10 and py+450<20*j+27:
+                        self.dirx=self.dirx*-1
+                        return
+                    if px+225>20*i+10 and px+225<20*i+27  and py+450==20*j+27:
+                        self.diry=self.diry*-1
+                        return
+                    if px+225>20*i+10 and px+225<20*i+27 and py+450==20*j+10  :
+                        self.diry=self.diry*-1
+                        return
+        # print(len(self.lines[1]),len(self.lines))
 
 ball=Ball(root,225,450,5)
-
-
 
 root.mainloop()
